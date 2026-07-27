@@ -152,14 +152,31 @@ function buildReveals(){
   const items = page ? [...page.querySelectorAll(".rv, .rv-y")] : [];
   const cta = document.getElementById("cta");
   if (cta && !cta.hidden) items.push(...cta.querySelectorAll(".rv, .rv-y"));
-  if (!items.length) return;
-  if (!anim()) { items.forEach(el => { el.style.opacity = "1"; el.style.transform = "none"; }); return; }
-  items.forEach(el => gsap.set(el, { opacity: 0, y: el.classList.contains("rv-y") ? 32 : 0 }));
-  batches = ST.batch(items, {
-    start: "top 88%",
-    once: true,
-    onEnter: b => gsap.to(b, { opacity: 1, y: 0, duration: .95, stagger: .08, ease: EASE, overwrite: "auto" })
-  });
+  // le righe d'archivio hanno un ingresso piu' asciutto: elenco lungo,
+  // movimento breve e cadenza fitta (senza JS l'effetto e' gia' presente)
+  const rows = page ? [...page.querySelectorAll(".arch .arow")] : [];
+
+  if (!anim()){
+    items.forEach(el => { el.style.opacity = "1"; el.style.transform = "none"; });
+    rows.forEach(el => { el.style.opacity = "1"; el.style.transform = "none"; });
+    return;
+  }
+  if (items.length){
+    items.forEach(el => gsap.set(el, { opacity: 0, y: el.classList.contains("rv-y") ? 32 : 0 }));
+    batches = ST.batch(items, {
+      start: "top 88%",
+      once: true,
+      onEnter: b => gsap.to(b, { opacity: 1, y: 0, duration: .95, stagger: .08, ease: EASE, overwrite: "auto" })
+    });
+  }
+  if (rows.length){
+    gsap.set(rows, { opacity: 0, y: 14 });
+    batches = batches.concat(ST.batch(rows, {
+      start: "top 94%",
+      once: true,
+      onEnter: b => gsap.to(b, { opacity: 1, y: 0, duration: .6, stagger: .045, ease: EASE, overwrite: "auto" })
+    }));
+  }
 }
 
 /* ---------- 6 · Ingresso pagina + tavole tecniche ---------- */
@@ -290,7 +307,7 @@ function buildMethod(){
 const items = [...document.querySelectorAll("[data-project]")];
 const fbtns = [...document.querySelectorAll(".fbtn")];
 let filter = "all";
-function applyFilter(f){
+function applyFilter(f, animate = true){
   filter = f;
   let n = 0;
   fbtns.forEach(b => b.setAttribute("aria-pressed", String(b.dataset.filter === f)));
@@ -307,7 +324,9 @@ function applyFilter(f){
   const arch = document.getElementById("pj-archive");
   if (feat) feat.hidden = !feat.querySelector("[data-project]:not([hidden])");
   if (arch) arch.hidden = !arch.querySelector("[data-project]:not([hidden])");
-  if (anim()){
+  // l'animazione appartiene al cambio filtro voluto dall'utente: all'ingresso
+  // della pagina il compito e' delle rivelazioni legate allo scorrimento
+  if (anim() && animate){
     const vis = items.filter(el => !el.hidden);
     gsap.fromTo(vis, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: .5, stagger: .025, ease: EASE, overwrite: "auto" });
   }
@@ -426,7 +445,7 @@ function pageInits(route){
   buildPlates();
   buildRail();
   if (route === "home") buildMethod(); else { methodST?.kill(); methodST = null; }
-  if (route === "progetti") applyFilter(filter);
+  if (route === "progetti") applyFilter(filter, false);
   if (route === "contatti" || MODE === "mpa") initMap();
   ST?.refresh();
 }

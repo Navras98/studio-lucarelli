@@ -826,6 +826,15 @@ html.no-js .page:target ~ .page[data-page="home"]{ display:none !important }
 /* passaggio morbido tra i quattro passi */
 .mstep{ transition:opacity .45s var(--e) }
 
+
+/* La barra di avanzamento e le tacche appartengono alla colonna di testo:
+   oltre i 900px restano a sinistra e non invadono mai il disegno. */
+@media (min-width:901px){
+  html.js .method-bar, html.js .method-ticks{ max-width:min(40%,600px) }
+  html.js .method-ticks{ gap:var(--s-1) }
+  html.js .method-ticks span{ font-size:.62rem; letter-spacing:.07em }
+}
+
 /* Tablet e telefono: il disegno sta sopra, il testo sotto; la scena resta
    bloccata e si costruisce scorrendo, come le tavole delle altre pagine. */
 @media (max-width:900px){
